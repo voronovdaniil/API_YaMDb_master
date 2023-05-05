@@ -8,7 +8,6 @@ from api.serializers import (AuthTokenSerializer, CategorySerializer,
                              TitleReadSerializer, TitleWriteSerializer,
                              UserSerializer)
 from api.utils import send_confirmation_code_to_email
-from django.conf import settings
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -27,31 +26,21 @@ def signup(request):
     username = request.data.get('username')
     if User.objects.filter(username=username).exists():
         user = get_object_or_404(User, username=username)
-        serializer = SignUpSerializer(
-            user, data=request.data, partial=True
-        )
-        serializer.is_valid(raise_exception=True)
-        if serializer.validated_data['email'] != user.email:
+
+        if request.data['email'] != user.email:
             return Response(
                 'Почта указана неверно!', status=status.HTTP_400_BAD_REQUEST
             )
-        serializer.save(raise_exception=True)
         send_confirmation_code_to_email(username)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_200_OK)
 
     serializer = SignUpSerializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
-    if serializer.validated_data['username'] != settings.NOT_ALLOWED_USERNAME:
+
+    if serializer.is_valid(raise_exception=True):
         serializer.save()
         send_confirmation_code_to_email(username)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    return Response(
-        (
-            f'Использование имени пользователя '
-            f'{settings.NOT_ALLOWED_USERNAME} запрещено!'
-        ),
-        status=status.HTTP_400_BAD_REQUEST
-    )
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(('POST',))

@@ -10,7 +10,8 @@ from users.models import User
 def send_confirmation_code_to_email(username):
     user = get_object_or_404(User, username=username)
     confirmation_code = int(
-        ''.join([str(random.randrange(0, 10))
+        ''.join([str(random.randrange(0,
+                                      10**settings.CONFIRMATION_CODE_LENGTH))
                  for _ in range(settings.CONFIRMATION_CODE_LENGTH)])
     )
     user.confirmation_code = confirmation_code
