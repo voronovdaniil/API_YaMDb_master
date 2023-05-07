@@ -19,19 +19,12 @@ class SignUpSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         username = data.get('username')
-        email = data.get('email')
-        if User.objects.filter(username=username).exists():
-            raise serializers.ValidationError(
-                f'Username {username} занят, выберите другой имя пользователя.'
-            )
-        elif User.objects.filter(email=email).exists():
-            raise serializers.ValidationError(
-                f'{email} уже зарегистрирован, введите другой email.'
-            )
-        elif username.lower() == settings.NOT_ALLOWED_USERNAME:
+
+        if username.lower() == settings.NOT_ALLOWED_USERNAME:
             raise serializers.ValidationError(
                 f'username не может быть {settings.NOT_ALLOWED_USERNAME}'
             )
+
         return data
 
 

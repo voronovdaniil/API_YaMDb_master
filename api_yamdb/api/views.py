@@ -24,19 +24,16 @@ from users.token import get_tokens_for_user
 @permission_classes((AllowAny,))
 def signup(request):
     username = request.data.get('username')
-    if User.objects.filter(username=username).exists():
-        user = get_object_or_404(User, username=username)
+    email = request.data.get('email')
 
-        if request.data['email'] != user.email:
-            return Response(
-                'Почта указана неверно!', status=status.HTTP_400_BAD_REQUEST
-            )
+    if (User.objects.filter(username=username).exists()
+            and email == User.objects.get(username=username).email):
         send_confirmation_code_to_email(username)
         return Response(status=status.HTTP_200_OK)
 
     serializer = SignUpSerializer(data=request.data)
 
-    if serializer.is_valid(raise_exception=True):
+    if serializer.is_valid():
         serializer.save()
         send_confirmation_code_to_email(username)
         return Response(serializer.data, status=status.HTTP_200_OK)
